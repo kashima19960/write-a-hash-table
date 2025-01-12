@@ -1,90 +1,44 @@
-# Appendix: alternative collision handling
+# 附录：冲突处理方法替代方案
 
-There are two common methods for handling collisions in hash tables:
+在哈希表中处理冲突的两种常见方法：
 
-- Separate chaining
-- Open addressing
+- 分离链接法
+- 开放寻址法
 
-### Separate chaining
+### 分离链接法
 
-Under separate chaining, each bucket contains a linked list. When items collide,
-they are added to the list. Methods:
+在分离链接法中，每个桶包含一个链表。当发生冲突时，冲突的项会被加入到该链表中。具体操作方法：
 
-- Insert: hash the key to get the bucket index. If there is nothing in that
-  bucket, store the item there. If there is already an item there, append the
-  item to the linked list.
-- Search: hash the key to get the bucket index. Traverse the linked list,
-  comparing each item's key to the search key. If the key is found, return the
-  value, else return `NULL`.
-- Delete: hash the key to get the bucket index. Traverse the linked list,
-  comparing each item's key to the delete key. If the key is found, remove the
-  item from the linked list. If there is only one item in the linked list,
-  place the `NULL` pointer in the bucket, to indicate that it is empty.
+- **插入**：通过哈希键找到桶的索引。如果该桶为空，直接存储项。如果已有关联项，则将新项追加到链表末尾。
+- **查找**：通过哈希键找到桶的索引，遍历链表，比较每项的键值与搜索键。若找到匹配键，返回对应值，否则返回`NULL`。
+- **删除**：通过哈希键找到桶的索引，遍历链表，比较每项的键值与删除键。若找到匹配项，将其从链表中移除。若链表仅有一项，则在桶中放置`NULL`指针，以标识为空桶。
 
+该方法实现简单，但空间效率较低。每个项还需额外存储指向链表下一项的指针或`NULL`空指针，这些空间用于维护链表结构，原本可用于存储更多数据。
 
-This has the advantage of being simple to implement, but is space inefficient.
-Each item has to also store a pointer to the next item in the linked list, or
-the `NULL` pointer if no items come after it. This is space wasted on
-bookkeeping, which could be spent on storing more items.
+### 开放寻址法
 
-### Open addressing
+开放寻址法旨在解决分离链接法的空间低效问题。当冲突发生时，被冲突的项将放置于表中其他桶内。具体的放置策略遵循预定的规则，并在搜索过程中可以重复使用。开放寻址有三种常见的选择策略：
 
-Open addressing aims to solve the space inefficiency of separate chaining. When
-collisions happen, the collided item is placed in some other bucket in the
-table. The bucket that the item is placed into is chosen according some
-predetermined rule, which can be repeated when searching for the item. There are
-three common methods for choosing the bucket to insert a collided item into.
+#### 线性探测
 
-#### Linear probing. 
+发生冲突时，索引递增，将项放入数组中下一个可用的桶中。具体操作：
 
-When a collision occurs, the index is incremented and the item is put in the
-next available bucket in the array. Methods:
+- **插入**：对键进行哈希以确定桶索引。若该桶为空，插入项；若不为空，递增索引直至找到空桶并插入。
+- **查找**：对键进行哈希以确定桶索引，递增索引，比较每一项的键值，直至遇到空桶。若找到匹配项，返回其值，否则返回`NULL`。
+- **删除**：对键进行哈希以确定桶索引，递增索引，比较每一项的键值，直至遇到空桶。若找到匹配项，删除之。删除操作会破坏探测链，因此需将该链后续所有项重新插入。
 
-- Insert: hash the key to find the bucket index. If the bucket is empty, insert
-  the item there. If it is not empty, repeatedly increment the index until an
-  empty bucket is found, and insert it there.
-- Search: hash the key to find the bucket index. Repeatedly increment the index,
-  comparing each item's key to the search key, until an empty bucket is found.
-  If an item with a matching key is found, return the value, else return `NULL`.
-- Delete: hash the key to find the bucket index. Repeatedly increment the index,
-  comparing each item's key to the delete key, until an empty bucket is found.
-  If an item with a matching key is found, delete it. Deleting this item breaks
-  the chain, so we have no choice but to reinsert all items in the chain after
-  the deleted item.
+线性探测具备良好的**缓存性能**，但存在聚类问题。连续的冲突项填充可能导致长串的满桶，在插入、查找或删除时需遍历这些桶，影响效率。
 
+#### 二次探测
 
-Linear probing offers good [cache
-performance](https://en.wikipedia.org/wiki/Locality_of_reference), but suffers
-from clustering issues. Putting collided items in the next available bucket can
-lead to long contiguous stretches of filled buckets, which need to be iterated
-over when inserting, searching or deleting.
+与线性探测类似，但不是将冲突项放置在下一个可用的桶中，而是按一定序列`i, i + 1, i + 4, i + 9, i + 16, ...`选择桶的索引（其中`i`为键的原哈希值）。具体操作：
 
-#### Quadratic probing. 
+- **插入**：对键进行哈希以确定桶索引，沿探测序列寻找空桶或已被删除的桶，并将项插入。
+- **查找**：对键进行哈希以确定桶索引，沿探测序列，比较每一项的键值，直至遇到空桶。若匹配，返回其值，否则返回`NULL`。
+- **删除**：无法确定所删项是否在冲突链上，故不能直接删除。改为标记该项为已删除状态。
 
-Similar to linear probing, but instead of putting the collided item in the next
-available bucket, we try to put it in the buckets whose indexes follow the
-sequence: `i, i + 1, i + 4, i + 9, i + 16, ...`, where `i` is the original hash
-of the key. Methods:
+二次探测减少了聚类现象，但并未完全消除，仍然提供了良好的缓存性能。
 
-- Insert: hash the key to find the bucket index. Follow the probing sequence
-  until an empty or deleted bucket is found, and insert the item there.
-- Search: hash the key to find the bucket index. Follow the probing sequence,
-  comparing each item's key to the search key until an empty bucket is found. If
-  a matching key is found, return the value, else return `NULL`.
-- Delete: we can't tell if the item we're deleting is part of a collision chain,
-  so we can't delete the item outright. Instead, we just mark it as deleted.
+#### 双重哈希
 
-Quadratic probing reduces, but does not remove, clustering, and still offers
-decent cache performance.
-
-#### Double hashing. 
-
-Double hashing aims to solve the clustering problem. To do so, we use a second
-hash function to choose a new index for the item. Using a hash function gives us
-a new bucket, the index of which should be evenly distributed across all
-buckets. This removes clustering, but also removes any boosted cache performance
-from locality of reference. Double hashing is a common method of collision
-management in production hash tables, and is the method we implement in this
-tutorial.
-
-
+双重哈希旨在解决聚类问题。为此，使用第二个哈希函数为冲突项选择新索引。通过哈希函数生成的索引应均匀分布于各桶，从而解决了聚类问题。但这种方式也使得缓存局部性的性能优势消失。双重哈希是生产环境中哈希表常用的冲突处理方法，也是本教程中实现的方法。
