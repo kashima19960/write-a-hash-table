@@ -1,6 +1,6 @@
-# Methods
+# 方法
 
-Our hash function will implement the following API:
+我们的哈希函数将实现以下API：
 
 ```c
 // hash_table.h
@@ -9,13 +9,9 @@ char* ht_search(ht_hash_table* ht, const char* key);
 void ht_delete(ht_hash_table* h, const char* key);
 ```
 
-## Insert
+## 插入
 
-To insert a new key-value pair, we iterate through indexes until we find an
-empty bucket. We then insert the item into that bucket and increment the hash
-table's `count` attribute, to indicate a new item has been added. A hash table's
-`count` attribute will become useful when we look at [resizing](/06-resizing) in
-the next section.
+为了插入一个新的键值对，我们会遍历索引直到找到一个空桶。接着将项插入该桶，并增加哈希表的 `count` 属性，表示添加了新项。当我们在下一部分中探讨[调整大小](/06-resizing)时，哈希表的 `count` 属性将变得非常有用。
 
 ```c
 // hash_table.c
@@ -34,12 +30,9 @@ void ht_insert(ht_hash_table* ht, const char* key, const char* value) {
 }
 ```
 
-## Search
+## 查找
 
-Searching is similar to inserting, but at each iteration of the `while` loop,
-we check whether the item's key matches the key we're searching for. If it does,
-we return the item's value. If the while loop hits a `NULL` bucket, we return
-`NULL`, to indicate that no value was found.
+查找类似于插入，但在 `while` 循环的每次迭代中，我们检查项的键是否与正在查找的键匹配。如果匹配，我们返回该项的值。如果循环遇到 `NULL` 桶，我们返回 `NULL`，表示未找到该值。
 
 ```c
 // hash_table.c
@@ -59,28 +52,22 @@ char* ht_search(ht_hash_table* ht, const char* key) {
 }
 ```
 
-## Delete
+## 删除
 
-Deleting from an open addressed hash table is more complicated than inserting or
-searching. The item we wish to delete may be part of a collision chain. Removing
-it from the table will break that chain, and will make finding items in the tail
-of the chain impossible. To solve this, instead of deleting the item, we
-simply mark it as deleted.
+从开放地址哈希表中删除项比插入或查找更为复杂。我们希望删除的项可能是冲突链的一部分。将其从表中移除会破坏该链，导致无法在链尾部找到其余项。为解决此问题，我们不删除项，而是简单地将其标记为已删除。
 
-We mark an item as deleted by replacing it with a pointer to a global sentinel
-item which represents that a bucket contains a deleted item.
+我们通过将项替换为指向全局标记为删除的项（哨兵项）的指针来标记项为已删除。
 
 ```c
 // hash_table.c
 static ht_item HT_DELETED_ITEM = {NULL, NULL};
-
 
 void ht_delete(ht_hash_table* ht, const char* key) {
     int index = ht_get_hash(key, ht->size, 0);
     ht_item* item = ht->items[index];
     int i = 1;
     while (item != NULL) {
-        if (item != &HT_DELETED_ITEM) {
+        if (item != &HT_DELETED_ITEM) {
             if (strcmp(item->key, key) == 0) {
                 ht_del_item(item);
                 ht->items[index] = &HT_DELETED_ITEM;
@@ -93,13 +80,12 @@ void ht_delete(ht_hash_table* ht, const char* key) {
     ht->count--;
 }
 ```
-After deleting, we decrement the hash table's `count` attribute.
 
-We also need to modify `ht_insert` and `ht_search` functions to take account of
-deleted nodes.
+删除后，我们减少哈希表的 `count` 属性。
 
-When searching, we ignore and 'jump over' deleted nodes. When inserting, if we
-hit a deleted node, we can insert the new node into the deleted slot.
+我们还需要修改 `ht_insert` 和 `ht_search` 函数，以考虑已删除的节点。
+
+在查找时，我们忽略并“跳过”已删除的节点。在插入时，如果遇到已删除的节点，我们可以将新节点插入已删除的位置。
 
 ```c
 // hash_table.c
@@ -111,11 +97,10 @@ void ht_insert(ht_hash_table* ht, const char* key, const char* value) {
     // ...
 }
 
-
 char* ht_search(ht_hash_table* ht, const char* key) {
     // ...
     while (item != NULL) {
-        if (item != &HT_DELETED_ITEM) { 
+        if (item != &HT_DELETED_ITEM) { 
             if (strcmp(item->key, key) == 0) {
                 return item->value;
             }
@@ -126,22 +111,18 @@ char* ht_search(ht_hash_table* ht, const char* key) {
 }
 ```
 
-## Update
+## 更新
 
-Our hash table doesn't currently support updating a key's value. If we insert
-two items with the same key, the keys will collide, and the second item will be
-inserted into the next available bucket. When searching for the key, the
-original key will always be found, and we are unable to access the second item.
+我们当前的哈希表尚不支持更新键的值。如果插入两个具有相同键的项，键将发生冲突，第二个项将被插入到下一个可用桶中。当查找该键时，总是会发现原始键，而我们无法访问到第二个项。
 
-We can fix this my modifying `ht_insert` to delete the previous item and insert
-the new item at its location.
+我们可以通过修改 `ht_insert`，在插入新项之前删除旧项，并在其位置插入新项来解决这个问题。
 
 ```c
 // hash_table.c
 void ht_insert(ht_hash_table* ht, const char* key, const char* value) {
     // ...
     while (cur_item != NULL) {
-        if (cur_item != &HT_DELETED_ITEM) {
+        if (cur_item != &HT_DELETED_ITEM) {
             if (strcmp(cur_item->key, key) == 0) {
                 ht_del_item(cur_item);
                 ht->items[index] = item;
@@ -154,5 +135,4 @@ void ht_insert(ht_hash_table* ht, const char* key, const char* value) {
 }
 ```
 
-Next section: [Resizing tables](/06-resizing)
-[Table of contents](https://github.com/jamesroutley/write-a-hash-table#contents)
+下一节内容：[调整表大小](../06-resizing/README_ZH.md)

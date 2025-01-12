@@ -1,39 +1,28 @@
-## Handling collisions
+## 处理冲突
 
-Hash functions map an infinitely large number of inputs to a finite number of
-outputs. Different input keys will map to the same array index, causing
-bucket collisions. Hash tables must implement some method of dealing with
-collisions. 
+哈希函数将无限多的输入映射到有限数量的输出上。不同的输入键可能会映射到相同的数组索引，导致存储桶发生冲突。哈希表必须实现某种方法来应对这种冲突。
 
-Our hash table will handle collisions using a technique called open addressing
-with double hashing. Double hashing makes use of two hash functions to
-calculate the index an item should be stored at after `i` collisions.
+我们的哈希表将采用一种称为双重哈希开放定址的技术来处理冲突。双重哈希利用两个哈希函数来计算在发生`i`次冲突后，一个项目应存储的索引位置。
 
-For an overview of other types of collision resolution, see the
-[appendix](/07-appendix).
+关于其他类型的冲突解决方法概览，请参阅[附录](../07-appendix/README_ZH.md)。
 
-## Double hashing
+## 双重哈希
 
-The index that should be used after `i` collisions is given by:
+在`i`次冲突后应使用的索引由以下公式给出：
 
 ```
 index = hash_a(string) + i * hash_b(string) % num_buckets
 ```
 
-We see that if no collisions have occurred, `i = 0`, so the index is just 
-`hash_a` of the string. If a collision happens, the index is modified by the
-`hash_b`.
+我们看到，如果没有发生冲突，`i = 0`，所以索引仅仅是字符串的`hash_a`结果。如果发生冲突，索引将通过`hash_b`进行调整。
 
-It is possible that `hash_b` will return 0, reducing the second term to 0. This
-will cause the hash table to try to insert the item into the same bucket over
-and over. We can mitigate this by adding 1 to the result of the second hash,
-making sure it's never 0.
+有可能`hash_b`会返回0，从而使第二项变为0。这将导致哈希表反复尝试将项目插入同一个存储桶中。我们可以通过在第二个哈希结果上加1来缓解这种情况，以确保结果永远不会是0。
 
 ```
 index = (hash_a(string) + i * (hash_b(string) + 1)) % num_buckets
 ```
 
-## Implementation
+## 实现
 
 ```c
 // hash_table.c
@@ -46,5 +35,4 @@ static int ht_get_hash(
 }
 ```
 
-Next section: [Hash table methods](/05-methods)
-[Table of contents](https://github.com/jamesroutley/write-a-hash-table#contents)
+下一节: [哈希表方法](../05-methods/README_ZH.md)  

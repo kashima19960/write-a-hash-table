@@ -1,6 +1,6 @@
-# Hash table structure
+# 哈希表结构
 
-Our key-value pairs (items) will each be stored in a `struct`:
+我们的键值对（items）将分别存储在一个 `struct` 中：
 
 ```c
 // hash_table.h
@@ -10,8 +10,7 @@ typedef struct {
 } ht_item;
 ```
 
-Our hash table stores an array of pointers to items, and some details about its
-size and how full it is:
+哈希表则存储一个指向这些 items 的指针数组，以及一些与大小和占用情况相关的细节：
 
 ```c
 // hash_table.h
@@ -22,12 +21,9 @@ typedef struct {
 } ht_hash_table;
 ```
 
-## Initialising and deleting
+## 初始化与删除
 
-We need to define initialisation functions for `ht_item`s. This function
-allocates a chunk of memory the size of an `ht_item`, and saves a copy of the
-strings `k` and `v` in the new chunk of memory. The function is marked as
-`static` because it will only ever be called by code internal to the hash table.
+我们需要为 `ht_item` 定义一个初始化函数。该函数会为 `ht_item` 分配一块内存，并将字符串 `k` 和 `v` 的副本保存到新分配的内存中。我们将此函数标记为 `static`，因为它只会在哈希表内部调用。
 
 ```c
 // hash_table.c
@@ -44,11 +40,7 @@ static ht_item* ht_new_item(const char* k, const char* v) {
 }
 ```
 
-`ht_new` initialises a new hash table. `size` defines how many items we can
-store. This is fixed at 53 for now. We'll expand this in the section on
-[resizing](/06-resizing). We initialise the array of items with `calloc`, which
-fills the allocated memory with `NULL` bytes. A `NULL` entry in the array
-indicates that the bucket is empty.
+`ht_new` 函数用于初始化一个新的哈希表。`size` 定义了我们可以存储多少个 items。目前我们将它固定为 53，稍后在[扩容部分](/06-resizing)会对其进行扩展。我们使用 `calloc` 初始化 items 数组，`calloc` 会将分配的内存填充为 `NULL` 字节。数组中的 `NULL` 条目表示该桶是空的。
 
 ```c
 // hash_table.c
@@ -62,9 +54,7 @@ ht_hash_table* ht_new() {
 }
 ```
 
-We also need functions for deleting `ht_item`s and `ht_hash_tables`, which
-`free` the memory we've allocated, so we don't cause [memory
-leaks](https://en.wikipedia.org/wiki/Memory_leak).
+我们还需要用于删除 `ht_item` 和 `ht_hash_table` 的函数，这些函数会释放我们分配的内存，以免造成[内存泄漏](https://en.wikipedia.org/wiki/Memory_leak)。
 
 ```c
 // hash_table.c
@@ -73,7 +63,6 @@ static void ht_del_item(ht_item* i) {
     free(i->value);
     free(i);
 }
-
 
 void ht_del_hash_table(ht_hash_table* ht) {
     for (int i = 0; i < ht->size; i++) {
@@ -87,8 +76,7 @@ void ht_del_hash_table(ht_hash_table* ht) {
 }
 ```
 
-We have written code which defines a hash table, and lets us create and destroy
-one. Although it doesn't do much at this point, we can still try it out.
+至此，我们已经完成了哈希表的定义，并编写了创建和销毁哈希表的代码。尽管目前它还不能执行太多功能，但我们可以尝试运行一下。
 
 ```c
 // main.c
@@ -100,5 +88,5 @@ int main() {
 }
 ```
 
-Next section: [Hash functions](/03-hashing)
-[Table of contents](https://github.com/jamesroutley/write-a-hash-table#contents)
+下一节：[哈希函数](/03-hashing)  
+[目录](https://github.com/jamesroutley/write-a-hash-table#contents)
