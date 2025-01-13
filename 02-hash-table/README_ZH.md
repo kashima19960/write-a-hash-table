@@ -88,5 +88,4 @@ int main() {
 }
 ```
 
-下一节：[哈希函数](/03-hashing)  
-[目录](https://github.com/jamesroutley/write-a-hash-table#contents)
+下一节：[哈希函数](/03-hashing) 
