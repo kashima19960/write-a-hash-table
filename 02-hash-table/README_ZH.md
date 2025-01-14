@@ -40,7 +40,7 @@ static ht_item* ht_new_item(const char* k, const char* v) {
 }
 ```
 
-`ht_new` 函数用于初始化一个新的哈希表。`size` 定义了我们可以存储多少个 items。目前我们将它固定为 53，稍后在[扩容部分](/06-resizing)会对其进行扩展。我们使用 `calloc` 初始化 items 数组，`calloc` 会将分配的内存填充为 `NULL` 字节。数组中的 `NULL` 条目表示该桶是空的。
+`ht_new` 函数用于初始化一个新的哈希表。`size` 定义了我们可以存储多少个 items。目前我们将它固定为 53，稍后在[调整大小](../06-resizing/README_ZH.md)会对其进行扩展。我们使用 `calloc` 初始化 items 数组，`calloc` 会将分配的内存填充为 `NULL` 字节。数组中的 `NULL` 条目表示该桶是空的。
 
 ```c
 // hash_table.c
